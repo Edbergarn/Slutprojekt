@@ -1,7 +1,14 @@
+import java.sql.SQLException;
+
 public class Controller {
 
     public static void main(String[] args) {
-        System.out.println(View.getText());
-        System.out.println("hej");
+
+        try {
+            Model model = new Model();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
     }
 }
