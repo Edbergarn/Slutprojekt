@@ -1,6 +1,7 @@
 
 
 import javax.swing.plaf.nimbus.State;
+import javax.swing.plaf.synth.SynthEditorPaneUI;
 import java.sql.*;
 import java.util.Objects;
 import java.util.Scanner;
@@ -12,7 +13,7 @@ public class Model {
         String hostname = "localhost";
         String dbName = "SlutProjektWU";
         int port = 3306;
-        final String DEFAULT_URL = "jdbc:mysql://"+ hostname +":"+port+"/"+dbName;
+        final String DEFAULT_URL = "jdbc:mysql://"+ hostname +":"+port+"/"+dbName + "?useSSL=false";
         final String DEFAULT_USERNAME = "emil";
         final String DEFAULT_PASSWORD = "edberg00";
         String currentUser = View.getUsername(); // Player inserts username
@@ -37,7 +38,7 @@ public class Model {
 
                 P = new Player(id, name, HP, weapon, armor, room); // Making a Player P
 
-            }else { // If username not found, create a new player-instance
+            }else { // If username not found, create a new player-instance--------------------------------------------------------------------------------------------------------------
                 String Username = View.getNewUsername(); // Player inserts the chosen Username
 
                 Statement createUserSt = conn.createStatement();
@@ -56,7 +57,7 @@ public class Model {
                     P = new Player(id, name, HP, weapon, armor, room);// Making a Player P
 
                 }
-                conn.close();
+                createUserSt.executeUpdate("INSERT INTO stats ( PlayerID, kills, deaths, level) VALUES (" + P.id + ", 0, 0, 1)");
                 Statement WSt = conn.createStatement();
                 WSt.executeUpdate("INSERT INTO weapons (name, PlayerID, damage, wear) VALUES ('Starter'," + P.id + ", 20, 25)");
                 ResultSet Weapon = WSt.executeQuery("SELECT id FROM weapons where PlayerID = " + P.id);
@@ -81,7 +82,7 @@ public class Model {
         String hostname = "localhost";
         String dbName = "SlutProjektWU";
         int port = 3306;
-        final String DEFAULT_URL = "jdbc:mysql://"+ hostname +":"+port+"/"+dbName;
+        final String DEFAULT_URL = "jdbc:mysql://"+ hostname +":"+port+"/"+dbName + "?useSSL=false";
         final String DEFAULT_USERNAME = "emil";
         final String DEFAULT_PASSWORD = "edberg00";
         try {
@@ -99,11 +100,11 @@ public class Model {
 
     public void playGame(Player P){ // Start the game
         //DB
-        final String DEFAULT_DRIVER_CLASS = "com.mysql.jdbc.Driver";
+        final String DEFAULT_DRIVER_CLASS = "com.mysql.jdbc.Driver?useSSL=false";
         String hostname = "localhost";
         String dbName = "SlutProjektWU";
         int port = 3306;
-        final String DEFAULT_URL = "jdbc:mysql://"+ hostname +":"+port+"/"+dbName;
+        final String DEFAULT_URL = "jdbc:mysql://"+ hostname +":"+port+"/"+dbName + "?useSSL=false";
         final String DEFAULT_USERNAME = "emil";
         final String DEFAULT_PASSWORD = "edberg00";
 
@@ -113,6 +114,7 @@ public class Model {
         int currentRoom = P.room;
         int hp = P.HP;
         boolean play = true;
+        boolean fighting;
         try {
             Connection conn = DriverManager.getConnection(DEFAULT_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD);
             Statement st = conn.createStatement();
@@ -123,25 +125,44 @@ public class Model {
                 int wear = rs.getInt("wear");
                 W = new Weapon(wName, damage, wear);
             }
-            Monster M = new Monster (1, 25, "Mob", 15);
             while (play){
+                Monster M = new Monster (1, 25 + currentRoom * 2, "Mob", 15);
                 String enterRoom = "Welcome to room " + currentRoom + ".";
-                View.dialog(M.name + " Spawned");
                 String compRoom = "Type a to attack " + M.name;
                 String finishedRoom = "Congratulations, you completed this room";
-                while (true){
-                    View.dialog(enterRoom);
+                fighting = true;
+                View.dialog(enterRoom);
+                View.dialog(M.name + " Spawned");
+                while (fighting){
                     View.dialog(compRoom);
-                    if (sc.nextLine().equalsIgnoreCase("a")){
+                    View.dialog("Mob has " + M.HP + " left");
+                    View.dialog("You have " + P.HP + " left");
+                    String nextLn = sc.nextLine();
+                    if (nextLn.equalsIgnoreCase("a")){
                         M.HP = M.HP - W.damage;
-                        P.HP = P.HP - M.dmg;
                         if (M.HP <= 0){
                             updatePlayer("UPDATE player SET room = " + currentRoom + " WHERE id = " + P.id);
                             currentRoom++;
                             View.dialog(finishedRoom);
+                            fighting = false;
 
+                        }else{
+                            P.HP = P.HP - M.dmg;
+                            if (P.HP <= 0){
+                                View.dialog("You're dead, GG!");
+                                updatePlayer("UPDATE player SET HP = 100 WHERE id = " + P.id);
+
+                                System.exit(0);
+                            }
+                            updatePlayer("UPDATE player SET HP = " + P.HP + " WHERE id = " + P.id);
                         }
 
+                    }else if (nextLn.equalsIgnoreCase("reset")){
+                        currentRoom = 1;
+                        P.HP = 100;
+                        fighting = false;
+                    }else if (nextLn.equalsIgnoreCase("quit")) {
+                        System.exit(0);
                     }
 
                 }
