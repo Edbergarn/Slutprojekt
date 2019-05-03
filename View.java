@@ -16,8 +16,8 @@ public class View {
             System.out.println("Enter your new Username");
             String Username = sc.nextLine();
             return Username;
-        } else if(!sc.nextLine().equalsIgnoreCase("No")){
-            getNewUsername();
+        } else if(sc.nextLine().equalsIgnoreCase("No")){    //BROKEN
+            View.getNewUsername();
             return "try again";
         }else {
                 System.out.println("Men spela inte då");

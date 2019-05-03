@@ -4,6 +4,7 @@ import javax.swing.plaf.nimbus.State;
 import javax.swing.plaf.synth.SynthEditorPaneUI;
 import java.sql.*;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Model {
@@ -59,7 +60,7 @@ public class Model {
                 }
                 createUserSt.executeUpdate("INSERT INTO stats ( PlayerID, kills, deaths, level) VALUES (" + P.id + ", 0, 0, 1)");
                 Statement WSt = conn.createStatement();
-                WSt.executeUpdate("INSERT INTO weapons (name, PlayerID, damage, wear) VALUES ('Starter'," + P.id + ", 20, 25)");
+                WSt.executeUpdate("INSERT INTO weapons (name, PlayerID, damage, wear) VALUES ('Starter'," + P.id + ", 15, 25)");
                 ResultSet Weapon = WSt.executeQuery("SELECT id FROM weapons where PlayerID = " + P.id);
                 while(Weapon.next()){
                     int weaponID = Weapon.getInt("ID");
@@ -123,7 +124,7 @@ public class Model {
                 String wName = rs.getString("name");
                 int damage = rs.getInt("damage");
                 int wear = rs.getInt("wear");
-                W = new Weapon(wName, damage, wear);
+                W = new Weapon(P.id, wName, damage, wear, 1);
             }
             while (play){
                 Monster M = new Monster (1, 25 + currentRoom * 2, "Mob", 15);
@@ -140,18 +141,50 @@ public class Model {
                     String nextLn = sc.nextLine();
                     if (nextLn.equalsIgnoreCase("a")){
                         M.HP = M.HP - W.damage;
-                        if (M.HP <= 0){
-                            updatePlayer("UPDATE player SET room = " + currentRoom + " WHERE id = " + P.id);
+                        if (M.HP < 1){
                             currentRoom++;
+                            updatePlayer("UPDATE player SET room = " + currentRoom + " WHERE id = " + P.id);
+                            Random R = new Random();
+                            int nr = R.nextInt(100);
+
+                            if (nr > 54){
+                                if (nr <= 69 ){
+                                    Weapon newW = getWeapon(nr, P.id);
+                                    View.dialog("You found a " + newW.name + "!");
+                                    View.dialog("Press \"Y\" to keep or \"T\" to throw");
+
+                                    if (sc.nextLine().equalsIgnoreCase("Y")){
+                                        updatePlayer("INSERT INTO weapons (name, PlayerID, damage, wear) VALUES ('" + newW.name + "'," + P.id + ", " + newW.damage + ", " + newW.wear + ")");
+                                        ResultSet gw = st.executeQuery("SELECT * FROM weapons WHERE PlayerID = " +  P.id);
+                                        while (gw.next()){
+                                            int id = gw.getInt("id");
+                                            String wName = rs.getString("name");
+                                            int damage = rs.getInt("damage");
+                                            int wear = rs.getInt("wear");
+                                            W = new Weapon(P.id, wName, damage, wear, 1);
+
+                                            updatePlayer("UPDATE player SET weapon = " + id);
+                                        }
+                                    }
+                                }else if (nr <= 84){
+                                    getPotion(nr, P.id);
+                                }else if (nr <= 100){
+                                    getPotion(nr, P.id);
+                                }
+                            }
+
+
+
+
                             View.dialog(finishedRoom);
                             fighting = false;
 
                         }else{
                             P.HP = P.HP - M.dmg;
                             if (P.HP <= 0){
+
                                 View.dialog("You're dead, GG!");
                                 updatePlayer("UPDATE player SET HP = 100 WHERE id = " + P.id);
-
                                 System.exit(0);
                             }
                             updatePlayer("UPDATE player SET HP = " + P.HP + " WHERE id = " + P.id);
@@ -162,6 +195,7 @@ public class Model {
                         P.HP = 100;
                         fighting = false;
                     }else if (nextLn.equalsIgnoreCase("quit")) {
+                        play = false;
                         System.exit(0);
                     }
 
@@ -172,10 +206,68 @@ public class Model {
             e.printStackTrace();
         }
 
+    }
+    public Weapon getWeapon(int nr, int id){
+        if (55 <= nr && nr <= 59){//Weapon
+            Weapon newW = new Weapon(id,"Sword", 18, 30, 1);
+            return newW;
 
+        }else if (60 <= nr && nr <= 63){
+            Weapon newW = new Weapon(id,"Sword", 20, 30, 1);
+            return newW;
+        }else if (64 <= nr && nr <= 66){
+            Weapon newW = new Weapon(id,"Sword", 21, 40, 1);
+            return newW;
+        }else if (67 <= nr && nr <= 68){
+            Weapon newW = new Weapon(id,"Sword", 26, 25, 1 );
+            return newW;
+        }else if (69 == nr){
+            Weapon newW = new Weapon(id,"Sword", 35, 20, 1 );
+            return newW;
+        }else{
+            return null;
+        }
+    }
+    public Armor getArmor(int nr, int id){
+        if (70 <= nr && nr <= 74){//Armor
+            Armor newA = new Armor(id, "Armor", 4, 20);
+            return newA;
+        }else if (75 <= nr && nr <= 78){
+            Armor newA = new Armor(id, "Armor", 6, 20);
+            return newA;
+        }else if (79 <= nr && nr <= 81){
+            Armor newA = new Armor(id, "Armor", 7, 30);
+            return newA;
+        }else if (82 <= nr && nr <= 83){
+            Armor newA = new Armor(id, "Armor", 10, 25);
+            return newA;
+        }else if (84 == nr){
+            Armor newA = new Armor(id, "Armor", 18, 20);
+            return newA;
+        }else{
+            return null;
+        }
+    }
 
-
-
+    public Object getPotion(int nr, int id){
+        if (85 <= nr && nr <= 89){//Potions
+            Potion newP = new Potion(id, "Potion", 20);
+            return newP;
+        }else if (90 <= nr && nr <= 93){
+            Potion newP = new Potion(id, "Potion", 35);
+            return newP;
+        }else if (94 <= nr && nr <= 96){
+            Potion newP = new Potion(id, "Potion", 50);
+            return newP;
+        }else if (97 <= nr && nr <= 98){
+            Potion newP = new Potion(id, "Potion", 75);
+            return newP;
+        }else if (99 <= nr && nr <= 100){
+            Potion newP = new Potion(id, "Potion", 100);
+            return newP;
+        }else{
+            return null;
+        }
     }
 
     public Model() throws SQLException {
