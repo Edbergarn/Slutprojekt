@@ -7,12 +7,12 @@ public class Model {
 
     private Player getStartInfo() { // Get Player-information before game start
         final String DEFAULT_DRIVER_CLASS = "com.mysql.jdbc.Driver";
-        String hostname = "localhost";
-        String dbName = "SlutProjektWU";
+        String hostname = "10.80.44.40";
+        String dbName = "eliren16";
         int port = 3306;
         final String DEFAULT_URL = "jdbc:mysql://"+ hostname +":"+port+"/"+dbName + "?useSSL=false";
-        final String DEFAULT_USERNAME = "emil";
-        final String DEFAULT_PASSWORD = "edberg00";
+        final String DEFAULT_USERNAME = "eliren16";
+        final String DEFAULT_PASSWORD = "Elev123";
         String currentUser = View.getUsername(); // Player inserts username
         Player P = null;
         try {
@@ -76,12 +76,12 @@ public class Model {
     }
     private Player updatePlayer(String a){ // update a specific Player-instance in the database
         final String DEFAULT_DRIVER_CLASS = "com.mysql.jdbc.Driver";
-        String hostname = "localhost";
-        String dbName = "SlutProjektWU";
+        String hostname = "10.80.44.40";
+        String dbName = "eliren16";
         int port = 3306;
         final String DEFAULT_URL = "jdbc:mysql://"+ hostname +":"+port+"/"+dbName + "?useSSL=false";
-        final String DEFAULT_USERNAME = "emil";
-        final String DEFAULT_PASSWORD = "edberg00";
+        final String DEFAULT_USERNAME = "eliren16";
+        final String DEFAULT_PASSWORD = "Elev123";
         try {
             Connection conn = DriverManager.getConnection(DEFAULT_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD);
             Statement st = conn.createStatement();
@@ -97,13 +97,13 @@ public class Model {
 
     public void playGame(Player P){ // Start the game
         //DB
-        final String DEFAULT_DRIVER_CLASS = "com.mysql.jdbc.Driver?useSSL=false";
-        String hostname = "localhost";
-        String dbName = "SlutProjektWU";
+        final String DEFAULT_DRIVER_CLASS = "com.mysql.jdbc.Driver";
+        String hostname = "10.80.44.40";
+        String dbName = "eliren16";
         int port = 3306;
         final String DEFAULT_URL = "jdbc:mysql://"+ hostname +":"+port+"/"+dbName + "?useSSL=false";
-        final String DEFAULT_USERNAME = "emil";
-        final String DEFAULT_PASSWORD = "edberg00";
+        final String DEFAULT_USERNAME = "eliren16";
+        final String DEFAULT_PASSWORD = "Elev123";
 
         Scanner sc = new Scanner(System.in);
         Weapon W = null;
@@ -135,8 +135,8 @@ public class Model {
                 View.dialog(M.name + " Spawned");
                 while (fighting){
                     View.dialog(compRoom);
-                    View.dialog("Mob has " + M.HP + " left");
-                    View.dialog("You have " + P.HP + " left");
+                    View.dialog("Mob has " + M.HP + " HP left");
+                    View.dialog("You have " + P.HP + " HP left");
                     String nextLn = sc.nextLine();
                     if (nextLn.equalsIgnoreCase("a")){
                         M.HP = M.HP - W.damage;
@@ -150,16 +150,18 @@ public class Model {
                                 if (nr <= 69 ){
                                     Weapon newW = getWeapon(nr, P.id);
                                     View.dialog("You found a " + newW.name + "!");
+                                    View.dialog("Damage: " + newW.damage);
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
+                                        updatePlayer("UPDATE weapon SET PlayerID = 0 WHERE Player ID = " + P.id);
                                         updatePlayer("INSERT INTO weapons (name, PlayerID, damage, wear) VALUES ('" + newW.name + "'," + P.id + ", " + newW.damage + ", " + newW.wear + ")");
                                         ResultSet gw = st.executeQuery("SELECT * FROM armor WHERE PlayerID = " +  P.id);
                                         while (gw.next()){
                                             int id = gw.getInt("id");
-                                            String wName = rs.getString("name");
-                                            int damage = rs.getInt("damage");
-                                            int wear = rs.getInt("wear");
+                                            String wName = gw.getString("name");
+                                            int damage = gw.getInt("damage");
+                                            int wear = gw.getInt("wear");
                                             W = new Weapon(P.id, wName, damage, wear);
 
                                             updatePlayer("UPDATE player SET weapon = " + id);
@@ -168,16 +170,19 @@ public class Model {
                                 }else if (nr <= 84){
                                     Armor newA = getArmor(nr, P.id);
                                     View.dialog("You found a " + newA.name + "!");
+                                    View.dialog("Defence: " + newA.defence);
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
+                                        updatePlayer("UPDATE armor SET PlayerID = 0 WHERE Player ID = " + P.id);
                                         updatePlayer("INSERT INTO armor (name, PlayerID, defence, wear) VALUES ('" + newA.name + "'," + P.id + ", " + newA.defence + ", " + newA.wear + ")");
-                                        ResultSet gw = st.executeQuery("SELECT * FROM weapons WHERE PlayerID = " +  P.id);
+
+                                        ResultSet gw = st.executeQuery("SELECT * FROM armor WHERE PlayerID = " +  P.id);
                                         while (gw.next()){
                                             int id = gw.getInt("id");
-                                            String aName = rs.getString("name");
-                                            int defence = rs.getInt("defence");
-                                            int wear = rs.getInt("wear");
+                                            String aName = gw.getString("name");
+                                            int defence = gw.getInt("defence");
+                                            int wear = gw.getInt("wear");
                                             A = new Armor(P.id, aName, defence, wear);
 
 
@@ -187,20 +192,21 @@ public class Model {
                                 }else if (nr <= 100){
                                     Potion newPO = getPotion(nr, P.id);
                                     View.dialog("You found a " + newPO.name + "!");
+                                    View.dialog("Healing: " + newPO.healing );
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
-                                        updatePlayer("INSERT INTO armor (name, PlayerID, defence, wear) VALUES ('" + newPO.name + "'," + P.id + ", " + newPO.healing + ")");
-                                        ResultSet gw = st.executeQuery("SELECT * FROM weapons WHERE PlayerID = " +  P.id);
+                                        updatePlayer("UPDATE potion SET PlayerID = 0 WHERE Player ID = " + P.id);
+                                        updatePlayer("INSERT INTO potion (name, PlayerID, healing) VALUES ('" + newPO.name + "'," + P.id + ", " + newPO.healing + ")");
+                                        ResultSet gw = st.executeQuery("SELECT * FROM potion WHERE PlayerID = " +  P.id);
                                         while (gw.next()){
                                             int id = gw.getInt("id");
-                                            String aName = rs.getString("name");
-                                            int defence = rs.getInt("defence");
-                                            int wear = rs.getInt("wear");
-                                            A = new Armor(P.id, aName, defence, wear);
+                                            String aName = gw.getString("name");
+                                            int healing = gw.getInt("healing");
+                                            PO = new Potion(P.id, aName, healing);
 
 
-                                            updatePlayer("UPDATE player SET armor = " + id);
+                                            updatePlayer("UPDATE player SET potion = " + id);
                                         }
                                     }
                                 }
