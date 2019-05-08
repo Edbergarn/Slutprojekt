@@ -1,9 +1,5 @@
 
-
-import javax.swing.plaf.nimbus.State;
-import javax.swing.plaf.synth.SynthEditorPaneUI;
 import java.sql.*;
-import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -111,6 +107,9 @@ public class Model {
 
         Scanner sc = new Scanner(System.in);
         Weapon W = null;
+        Armor A = null;
+        Potion PO = null;
+
         String name = P.name;
         int currentRoom = P.room;
         int hp = P.HP;
@@ -155,21 +154,55 @@ public class Model {
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
                                         updatePlayer("INSERT INTO weapons (name, PlayerID, damage, wear) VALUES ('" + newW.name + "'," + P.id + ", " + newW.damage + ", " + newW.wear + ")");
-                                        ResultSet gw = st.executeQuery("SELECT * FROM weapons WHERE PlayerID = " +  P.id);
+                                        ResultSet gw = st.executeQuery("SELECT * FROM armor WHERE PlayerID = " +  P.id);
                                         while (gw.next()){
                                             int id = gw.getInt("id");
                                             String wName = rs.getString("name");
                                             int damage = rs.getInt("damage");
                                             int wear = rs.getInt("wear");
-                                            W = new Weapon(P.id, wName, damage, wear, 1);
+                                            W = new Weapon(P.id, wName, damage, wear);
 
                                             updatePlayer("UPDATE player SET weapon = " + id);
                                         }
                                     }
                                 }else if (nr <= 84){
-                                    getPotion(nr, P.id);
+                                    Armor newA = getArmor(nr, P.id);
+                                    View.dialog("You found a " + newA.name + "!");
+                                    View.dialog("Press \"Y\" to keep or \"T\" to throw");
+
+                                    if (sc.nextLine().equalsIgnoreCase("Y")){
+                                        updatePlayer("INSERT INTO armor (name, PlayerID, defence, wear) VALUES ('" + newA.name + "'," + P.id + ", " + newA.defence + ", " + newA.wear + ")");
+                                        ResultSet gw = st.executeQuery("SELECT * FROM weapons WHERE PlayerID = " +  P.id);
+                                        while (gw.next()){
+                                            int id = gw.getInt("id");
+                                            String aName = rs.getString("name");
+                                            int defence = rs.getInt("defence");
+                                            int wear = rs.getInt("wear");
+                                            A = new Armor(P.id, aName, defence, wear);
+
+
+                                            updatePlayer("UPDATE player SET armor = " + id);
+                                        }
+                                    }
                                 }else if (nr <= 100){
-                                    getPotion(nr, P.id);
+                                    Potion newPO = getPotion(nr, P.id);
+                                    View.dialog("You found a " + newPO.name + "!");
+                                    View.dialog("Press \"Y\" to keep or \"T\" to throw");
+
+                                    if (sc.nextLine().equalsIgnoreCase("Y")){
+                                        updatePlayer("INSERT INTO armor (name, PlayerID, defence, wear) VALUES ('" + newPO.name + "'," + P.id + ", " + newPO.healing + ")");
+                                        ResultSet gw = st.executeQuery("SELECT * FROM weapons WHERE PlayerID = " +  P.id);
+                                        while (gw.next()){
+                                            int id = gw.getInt("id");
+                                            String aName = rs.getString("name");
+                                            int defence = rs.getInt("defence");
+                                            int wear = rs.getInt("wear");
+                                            A = new Armor(P.id, aName, defence, wear);
+
+
+                                            updatePlayer("UPDATE player SET armor = " + id);
+                                        }
+                                    }
                                 }
                             }
 
@@ -209,20 +242,19 @@ public class Model {
     }
     public Weapon getWeapon(int nr, int id){
         if (55 <= nr && nr <= 59){//Weapon
-            Weapon newW = new Weapon(id,"Sword", 18, 30, 1);
+            Weapon newW = new Weapon(id,"Sword", 18, 30);
             return newW;
-
         }else if (60 <= nr && nr <= 63){
-            Weapon newW = new Weapon(id,"Sword", 20, 30, 1);
+            Weapon newW = new Weapon(id,"Sword", 20, 30);
             return newW;
         }else if (64 <= nr && nr <= 66){
-            Weapon newW = new Weapon(id,"Sword", 21, 40, 1);
+            Weapon newW = new Weapon(id,"Sword", 21, 40);
             return newW;
         }else if (67 <= nr && nr <= 68){
-            Weapon newW = new Weapon(id,"Sword", 26, 25, 1 );
+            Weapon newW = new Weapon(id,"Sword", 26, 25);
             return newW;
         }else if (69 == nr){
-            Weapon newW = new Weapon(id,"Sword", 35, 20, 1 );
+            Weapon newW = new Weapon(id,"Sword", 35, 20);
             return newW;
         }else{
             return null;
@@ -249,7 +281,7 @@ public class Model {
         }
     }
 
-    public Object getPotion(int nr, int id){
+    public Potion getPotion(int nr, int id){
         if (85 <= nr && nr <= 89){//Potions
             Potion newP = new Potion(id, "Potion", 20);
             return newP;
