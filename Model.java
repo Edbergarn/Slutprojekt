@@ -123,7 +123,7 @@ public class Model {
                 String wName = rs.getString("name");
                 int damage = rs.getInt("damage");
                 int wear = rs.getInt("wear");
-                W = new Weapon(P.id, wName, damage, wear, 1);
+                W = new Weapon(P.id, wName, damage, wear);
             }
             while (play){
                 Monster M = new Monster (1, 25 + currentRoom * 2, "Mob", 15);
