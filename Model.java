@@ -134,7 +134,7 @@ public class Model {
         try {
             Connection conn = DriverManager.getConnection(DEFAULT_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD);
             Statement st = conn.createStatement();
-            st.executeUpdate("UPDATE stats SET (PlayerID, rounds, kills, deaths, level, maxRoom, foundSwords, foundArmors, foundPotions, destroyedItems) VALUES (" + s.PlayerID + ", " + s.rounds + ", " + s.kills + ", " + s.deaths + ", " + s.level + ", " + s.maxRoom + ", " + s.foundSwords + ", " + s.foundArmors + ", " + s.foundPotions + ", " + s.destroyedItems + ")");
+            st.executeUpdate("UPDATE stats SET rounds = " + s.rounds + ", kills = " + s.kills + ", deaths = " + s.deaths + ", level = " + s.level + ", maxRoom = " + s.maxRoom + ", foundSwords = " + s.foundSwords + ", foundArmors = " + s.foundArmors + ", foundPotions = " + s.foundPotions + ", destroyedItems = " + s.destroyedItems + " WHERE PlayerID = " + s.PlayerID);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -311,7 +311,7 @@ public class Model {
                             if (P.HP <= 0){
 
                                 stats.deaths++;
-                                if (currentRoom < stats.maxRoom){
+                                if (currentRoom > stats.maxRoom){
                                     stats.maxRoom = currentRoom;
                                 }
                                 View.dialog("You're dead, GG!");
