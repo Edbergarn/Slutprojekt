@@ -6,7 +6,6 @@ import java.util.Scanner;
 public class Model {
 
     private Player getStartInfo() { // Get Player-information before game start
-        final String DEFAULT_DRIVER_CLASS = "com.mysql.jdbc.Driver";
         String hostname = "10.80.44.40";
         String dbName = "eliren16";
         int port = 3306;
@@ -19,10 +18,10 @@ public class Model {
         try {
 
             Connection conn = DriverManager.getConnection(DEFAULT_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD);
-            String startInfo = "SELECT * FROM player WHERE name = '" + currentUser + "'"; // Fetching data from the current player
+            String startInfo = "SELECT * FROM players WHERE name = '" + currentUser + "'"; // Fetching data from the current player
 
             Statement gameStart = conn.createStatement();
-            ResultSet gS = gameStart.executeQuery(startInfo);//-----------------------------------------------------------------------------RECREATING ALREADY EXISTING PLAYER-------------------------------------------------
+            ResultSet gS = gameStart.executeQuery(startInfo);//-----------------------------------------------------------------------------RECREATING ALREADY EXISTING PLAYER----------------------------
 
             P = getPlayer(gS);
 
@@ -33,12 +32,12 @@ public class Model {
             System.out.println(P.potion);
             System.out.println(P.room);
 
-            if (P.id == 0){ // If username not found, create a new player-instance--------------------------------------------------------------------------------------------------------------
+            if (P.id == 0){ // ------------------------------------------------------------------------------------------------------If username not found, create a new player-instance------------------
                 String Username = View.getNewUsername(); // Player inserts the chosen Username
 
                 Statement createUserSt = conn.createStatement();
-                createUserSt.executeUpdate("INSERT INTO player (name, HP, weapon, armor, potion, room) VALUES ('" + Username + "', 100, 1, 1, 0, 1)");
-                ResultSet nU = createUserSt.executeQuery("SELECT * FROM player WHERE name = '" + Username + "'"); // Fetching data from the new player-instance in the DB, to get ID
+                createUserSt.executeUpdate("INSERT INTO players (name, HP, weapon, armor, potion, room) VALUES ('" + Username + "', 100, 1, 1, 0, 1)");
+                ResultSet nU = createUserSt.executeQuery("SELECT * FROM players WHERE name = '" + Username + "'"); // Fetching data from the new player-instance in the DB, to get ID
                 while (nU.next()) {
 
                     int id = nU.getInt("ID");
@@ -61,7 +60,7 @@ public class Model {
                 ResultSet Weapon = WSt.executeQuery("SELECT id FROM weapon where PlayerID = " + P.id);
                 while(Weapon.next()){
                     int weaponID = Weapon.getInt("ID");
-                    createUserSt.executeUpdate("UPDATE player SET weapon = " + weaponID + " WHERE id = " + P.id);
+                    createUserSt.executeUpdate("UPDATE players SET weapon = " + weaponID + " WHERE id = " + P.id);
                 }
 
                 conn.close();
@@ -104,7 +103,6 @@ public class Model {
             return null;
     }
     private Player updatePlayer(String a){ // update a specific Player-instance in the database
-        final String DEFAULT_DRIVER_CLASS = "com.mysql.jdbc.Driver";
         String hostname = "10.80.44.40";
         String dbName = "eliren16";
         int port = 3306;
@@ -124,7 +122,6 @@ public class Model {
 
     }
     public void updateStats(Stats s){
-        final String DEFAULT_DRIVER_CLASS = "com.mysql.jdbc.Driver";
         String hostname = "10.80.44.40";
         String dbName = "eliren16";
         int port = 3306;
@@ -143,7 +140,6 @@ public class Model {
 
     public void playGame(Player P){ // Start the game
         //DB
-        final String DEFAULT_DRIVER_CLASS = "com.mysql.jdbc.Driver";
         String hostname = "10.80.44.40";
         String dbName = "eliren16";
         int port = 3306;
@@ -157,9 +153,7 @@ public class Model {
         Potion PO = null;
         int tempID = 0;
 
-        String name = P.name;
         int currentRoom = P.room;
-        int hp = P.HP;
         boolean play = true;
         boolean fighting;
         try {
@@ -218,10 +212,17 @@ public class Model {
                     View.dialog("You have " + P.HP + " HP left");
                     String nextLn = sc.nextLine();
                     if (nextLn.equalsIgnoreCase("a")){
-                        M.HP = M.HP - W.damage;
+                        M.HP -= W.damage;
+                        W.wear--;
+                        if (W.wear < 1){
+                            P.weapon = 0;
+                            W.damage = 10;
+                        }
                         if (M.HP < 1){
                             currentRoom++;
-                            updatePlayer("UPDATE player SET room = " + currentRoom + " WHERE id = " + P.id);
+                            updatePlayer("UPDATE players SET room = " + currentRoom + " WHERE id = " + P.id);
+                            stats.kills++;
+                            View.dialog(finishedRoom);
                             Random R = new Random();
                             int nr = R.nextInt(100);
 
@@ -230,7 +231,9 @@ public class Model {
                                     stats.foundSwords++;
                                     Weapon newW = getWeapon(nr, P.id);
                                     View.dialog("You found a " + newW.name + "!");
-                                    View.dialog("Damage: " + newW.damage);
+                                    View.dialog("Damage: " + newW.damage + " Wear: " + newW.wear);
+                                    View.dialog("Current Damage: " + W.damage + " Wear: " + W.wear);
+
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
@@ -247,14 +250,16 @@ public class Model {
 
                                         }
                                         System.out.println(tempID);
-                                        updatePlayer("UPDATE player SET weapon = " + tempID + " WHERE id = " + P.id);
+                                        updatePlayer("UPDATE players SET weapon = " + tempID + " WHERE id = " + P.id);
 
                                     }
                                 }else if (nr <= 84){//-----------------------------------------------------------ARMOR---------------------------
                                     stats.foundArmors++;
                                     Armor newA = getArmor(nr, P.id);
                                     View.dialog("You found a " + newA.name + "!");
-                                    View.dialog("Defence: " + newA.defence);
+                                    View.dialog("Defence: " + newA.defence + " Wear: " + newA.wear);
+                                    View.dialog("Current Defence: " + A.defence + " Wear: " + A.wear);
+
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
@@ -272,13 +277,19 @@ public class Model {
 
 
                                         }
-                                        updatePlayer("UPDATE player SET armor = " + tempID + " WHERE id = " + P.id);
+                                        updatePlayer("UPDATE players SET armor = " + tempID + " WHERE id = " + P.id);
                                     }
                                 }else if (nr <= 100){//----------------------------------------------------------POTION--------------------------------------------------------
                                     stats.foundPotions++;
                                     Potion newPO = getPotion(nr, P.id);
                                     View.dialog("You found a " + newPO.name + "!");
                                     View.dialog("Healing: " + newPO.healing );
+                                    if (P.potion != 0){
+                                        View.dialog("Current healing: " + PO.healing);
+                                    }else{
+                                        System.out.println("You currently have no potion");
+                                    }
+
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
@@ -295,14 +306,12 @@ public class Model {
 
 
                                         }
-                                        updatePlayer("UPDATE player SET potion = " + tempID + " WHERE id = " + P.id);
+                                        updatePlayer("UPDATE players SET potion = " + tempID + " WHERE id = " + P.id);
                                     }
                                 }
                             }
 
 
-                            stats.kills++;
-                            View.dialog(finishedRoom);
                             fighting = false;
 
                         }else{
@@ -312,6 +321,9 @@ public class Model {
                             }
                             P.HP = P.HP - hit;
                             A.wear--;
+                            if (A.wear < 1){
+                                P.armor = 0;
+                            }
                             if (P.HP <= 0){
 
                                 stats.deaths++;
@@ -319,11 +331,11 @@ public class Model {
                                     stats.maxRoom = currentRoom;
                                 }
                                 View.dialog("You're dead, GG!");
-                                updatePlayer("UPDATE player SET HP = 100 WHERE id = " + P.id);
+                                updatePlayer("UPDATE players SET HP = 100 WHERE id = " + P.id);
                                 updateStats(stats);
                                 System.exit(0);
                             }
-                            updatePlayer("UPDATE player SET HP = " + P.HP + " WHERE id = " + P.id);
+                            updatePlayer("UPDATE players SET HP = " + P.HP + " WHERE id = " + P.id);
                         }
 
                     }else if (nextLn.equalsIgnoreCase("reset")){
@@ -334,9 +346,11 @@ public class Model {
                         play = false;
                         System.exit(0);
                     }else if (nextLn.equalsIgnoreCase("Potion")){
-                        P.HP += PO.healing;
-                        updatePlayer("DELETE FROM potion WHERE PlayerID = " + P.id);
-                        PO.healing = 0;
+                        if (P.potion != 0) {
+                            P.HP += PO.healing;
+                            updatePlayer("DELETE FROM potion WHERE PlayerID = " + P.id);
+                            PO.healing = 0;
+                        }
                     }
                     updateStats(stats);
 
@@ -349,41 +363,31 @@ public class Model {
 
     }
     public Weapon getWeapon(int nr, int id){
-        if (55 <= nr && nr <= 59){//Weapon
-            Weapon newW = new Weapon(id,"Sword", 18, 30);
-            return newW;
+        if (55 <= nr && nr <= 59){
+            return new Weapon(id,"Sword", 18, 30);
         }else if (60 <= nr && nr <= 63){
-            Weapon newW = new Weapon(id,"Sword", 20, 30);
-            return newW;
+            return new Weapon(id,"Sword", 20, 30);
         }else if (64 <= nr && nr <= 66){
-            Weapon newW = new Weapon(id,"Sword", 21, 40);
-            return newW;
+            return new Weapon(id,"Sword", 21, 40);
         }else if (67 <= nr && nr <= 68){
-            Weapon newW = new Weapon(id,"Sword", 26, 25);
-            return newW;
+            return new Weapon(id,"Sword", 26, 25);
         }else if (69 == nr){
-            Weapon newW = new Weapon(id,"Sword", 35, 20);
-            return newW;
+            return new Weapon(id,"Sword", 35, 20);
         }else{
             return null;
         }
     }
     public Armor getArmor(int nr, int id){
         if (70 <= nr && nr <= 74){//Armor
-            Armor newA = new Armor(id, "Armor", 4, 20);
-            return newA;
+            return new Armor(id, "Armor", 4, 20);
         }else if (75 <= nr && nr <= 78){
-            Armor newA = new Armor(id, "Armor", 6, 20);
-            return newA;
+            return new Armor(id, "Armor", 6, 20);
         }else if (79 <= nr && nr <= 81){
-            Armor newA = new Armor(id, "Armor", 7, 30);
-            return newA;
+            return new Armor(id, "Armor", 7, 30);
         }else if (82 <= nr && nr <= 83){
-            Armor newA = new Armor(id, "Armor", 10, 25);
-            return newA;
+            return new Armor(id, "Armor", 10, 25);
         }else if (84 == nr){
-            Armor newA = new Armor(id, "Armor", 18, 20);
-            return newA;
+            return new Armor(id, "Armor", 18, 20);
         }else{
             return null;
         }
@@ -391,26 +395,21 @@ public class Model {
 
     public Potion getPotion(int nr, int id){
         if (85 <= nr && nr <= 89){//Potions
-            Potion newP = new Potion(id, "Potion", 20);
-            return newP;
+            return new Potion(id, "Potion", 20);
         }else if (90 <= nr && nr <= 93){
-            Potion newP = new Potion(id, "Potion", 35);
-            return newP;
+            return new Potion(id, "Potion", 35);
         }else if (94 <= nr && nr <= 96){
-            Potion newP = new Potion(id, "Potion", 50);
-            return newP;
+            return new Potion(id, "Potion", 50);
         }else if (97 <= nr && nr <= 98){
-            Potion newP = new Potion(id, "Potion", 75);
-            return newP;
+            return new Potion(id, "Potion", 75);
         }else if (99 <= nr && nr <= 100){
-            Potion newP = new Potion(id, "Potion", 100);
-            return newP;
+            return new Potion(id, "Potion", 100);
         }else{
             return null;
         }
     }
 
-    public Model() throws SQLException {
+    public Model() {
         Player P = getStartInfo();
 
         playGame(P);
