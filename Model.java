@@ -306,7 +306,11 @@ public class Model {
                             fighting = false;
 
                         }else{
-                            P.HP = P.HP - (M.dmg - A.defence);
+                            int hit = (M.dmg - A.defence);
+                            if (hit < 0){
+                                hit = 0;
+                            }
+                            P.HP = P.HP - hit;
                             A.wear--;
                             if (P.HP <= 0){
 
@@ -329,6 +333,10 @@ public class Model {
                     }else if (nextLn.equalsIgnoreCase("quit")) {
                         play = false;
                         System.exit(0);
+                    }else if (nextLn.equalsIgnoreCase("Potion")){
+                        P.HP += PO.healing;
+                        updatePlayer("DELETE FROM potion WHERE PlayerID = " + P.id);
+                        PO.healing = 0;
                     }
                     updateStats(stats);
 
