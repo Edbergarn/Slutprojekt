@@ -25,6 +25,7 @@ public class Model {
 
             P = getPlayer(gS);
 
+            assert P != null;
             System.out.println(P.id);
             System.out.println(P.HP);
             System.out.println(P.weapon);
@@ -102,7 +103,7 @@ public class Model {
             }
             return null;
     }
-    private Player updatePlayer(String a){ // update a specific Player-instance in the database
+    private void updatePlayer(String a){ // update a specific Player-instance in the database
         String hostname = "10.80.44.40";
         String dbName = "eliren16";
         int port = 3306;
@@ -118,10 +119,9 @@ public class Model {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
 
     }
-    public void updateStats(Stats s){
+    private void updateStats(Stats s){
         String hostname = "10.80.44.40";
         String dbName = "eliren16";
         int port = 3306;
@@ -139,10 +139,10 @@ public class Model {
     }
 
     /**
-     *Playing game
+     *Where the game is played
      * @param P
      */
-    public void playGame(Player P){ // Start the game
+    private void playGame(Player P){ // Start the game
         //DB
         String hostname = "10.80.44.40";
         String dbName = "eliren16";
@@ -158,7 +158,7 @@ public class Model {
         int tempID = 0;
 
         int currentRoom = P.room;
-        boolean play = true;
+        //boolean play = true;
         boolean fighting;
         try {
             Connection conn = DriverManager.getConnection(DEFAULT_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD);
@@ -201,7 +201,7 @@ public class Model {
                 stats = new Stats(PlayerID, rounds, kills, deaths, level, maxRoom, foundSwords, foundArmors, foundPotions, destroyedItems);
 
             }
-            while (play){
+            while (true){
                 Monster M = new Monster (1, 25 + currentRoom * 2, "Mob", 15);
                 String enterRoom = "Welcome to room " + currentRoom + ".";
                 String compRoom = "Type a to attack " + M.name;
@@ -216,6 +216,7 @@ public class Model {
                     View.dialog("You have " + P.HP + " HP left");
                     String nextLn = sc.nextLine();
                     if (nextLn.equalsIgnoreCase("a")){
+                        assert W != null;
                         M.HP -= W.damage;
                         W.wear--;
                         if (W.wear < 1){
@@ -225,6 +226,7 @@ public class Model {
                         if (M.HP < 1){
                             currentRoom++;
                             updatePlayer("UPDATE players SET room = " + currentRoom + " WHERE id = " + P.id);
+                            assert stats != null;
                             stats.kills++;
                             View.dialog(finishedRoom);
                             Random R = new Random();
@@ -234,6 +236,7 @@ public class Model {
                                 if (nr <= 69 ){//------------------------------------------------------WEAPON--------------------------------------
                                     stats.foundSwords++;
                                     Weapon newW = getWeapon(nr, P.id);
+                                    assert newW != null;
                                     View.dialog("You found a " + newW.name + "!");
                                     View.dialog("Damage: " + newW.damage + " Wear: " + newW.wear);
                                     View.dialog("Current Damage: " + W.damage + " Wear: " + W.wear);
@@ -260,8 +263,10 @@ public class Model {
                                 }else if (nr <= 84){//-----------------------------------------------------------ARMOR---------------------------
                                     stats.foundArmors++;
                                     Armor newA = getArmor(nr, P.id);
+                                    assert newA != null;
                                     View.dialog("You found a " + newA.name + "!");
                                     View.dialog("Defence: " + newA.defence + " Wear: " + newA.wear);
+                                    assert A != null;
                                     View.dialog("Current Defence: " + A.defence + " Wear: " + A.wear);
 
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
@@ -286,6 +291,7 @@ public class Model {
                                 }else if (nr <= 100){//----------------------------------------------------------POTION--------------------------------------------------------
                                     stats.foundPotions++;
                                     Potion newPO = getPotion(nr, P.id);
+                                    assert newPO != null;
                                     View.dialog("You found a " + newPO.name + "!");
                                     View.dialog("Healing: " + newPO.healing );
                                     if (PO != null) {
@@ -319,6 +325,7 @@ public class Model {
                             fighting = false;
 
                         }else{
+                            assert A != null;
                             int hit = (M.dmg - A.defence);
                             if (hit < 0){
                                 hit = 0;
@@ -331,6 +338,7 @@ public class Model {
                             }
                             if (P.HP <= 0){
 
+                                assert stats != null;
                                 stats.deaths++;
                                 if (currentRoom > stats.maxRoom){
                                     stats.maxRoom = currentRoom;
@@ -348,15 +356,19 @@ public class Model {
                         P.HP = 100;
                         fighting = false;
                     }else if (nextLn.equalsIgnoreCase("quit")) {
-                        play = false;
                         System.exit(0);
                     }else if (nextLn.equalsIgnoreCase("Potion")){
                         if (P.potion != 0) {
+                            assert PO != null;
                             P.HP += PO.healing;
+                            if (P.HP < 100){
+                                P.HP = 100;
+                            }
                             updatePlayer("DELETE FROM potion WHERE PlayerID = " + P.id);
                             PO.healing = 0;
                         }
                     }
+                    assert stats != null;
                     updateStats(stats);
 
                 }
