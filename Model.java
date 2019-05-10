@@ -138,6 +138,10 @@ public class Model {
         }
     }
 
+    /**
+     *Playing game
+     * @param P
+     */
     public void playGame(Player P){ // Start the game
         //DB
         String hostname = "10.80.44.40";
@@ -284,10 +288,10 @@ public class Model {
                                     Potion newPO = getPotion(nr, P.id);
                                     View.dialog("You found a " + newPO.name + "!");
                                     View.dialog("Healing: " + newPO.healing );
-                                    if (P.potion != 0){
+                                    if (PO != null) {
                                         View.dialog("Current healing: " + PO.healing);
                                     }else{
-                                        System.out.println("You currently have no potion");
+                                    System.out.println("You currently have no potion");
                                     }
 
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
@@ -323,6 +327,7 @@ public class Model {
                             A.wear--;
                             if (A.wear < 1){
                                 P.armor = 0;
+                                A.defence = 0;
                             }
                             if (P.HP <= 0){
 
@@ -362,7 +367,7 @@ public class Model {
         }
 
     }
-    public Weapon getWeapon(int nr, int id){
+    private Weapon getWeapon(int nr, int id){
         if (55 <= nr && nr <= 59){
             return new Weapon(id,"Sword", 18, 30);
         }else if (60 <= nr && nr <= 63){
@@ -377,7 +382,7 @@ public class Model {
             return null;
         }
     }
-    public Armor getArmor(int nr, int id){
+    private Armor getArmor(int nr, int id){
         if (70 <= nr && nr <= 74){//Armor
             return new Armor(id, "Armor", 4, 20);
         }else if (75 <= nr && nr <= 78){
@@ -393,7 +398,7 @@ public class Model {
         }
     }
 
-    public Potion getPotion(int nr, int id){
+    private Potion getPotion(int nr, int id){
         if (85 <= nr && nr <= 89){//Potions
             return new Potion(id, "Potion", 20);
         }else if (90 <= nr && nr <= 93){
@@ -418,4 +423,3 @@ public class Model {
     }
 
 }
-
