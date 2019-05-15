@@ -53,12 +53,12 @@ public class Model {
                     P = new Player(id, name, HP, weapon, armor, potion, room);// Making a Player P
 
                 }
-                createUserSt.executeUpdate("INSERT INTO stats (PlayerID, rounds, kills, deaths, level, maxRoom, foundSwords, foundArmors, foundPotions, destroyedItems) VALUES (" + P.id + ", 0, 0, 0, 1, 1, 0, 0, 0, 0)");
+                createUserSt.executeUpdate("INSERT INTO stats (player_id, name, rounds, kills, deaths, level, maxRoom, foundSwords, foundArmors, foundPotions, destroyedItems) VALUES (" + P.id + ", '" + P.name + "', 0, 0, 0, 1, 1, 0, 0, 0, 0)");
                 Statement WSt = conn.createStatement();
-                WSt.executeUpdate("INSERT INTO weapon (name, PlayerID, damage, wear) VALUES ('Starter'," + P.id + ", 15, 25)");
-                WSt.executeUpdate("INSERT INTO armor (name, PlayerID, defence, wear) VALUES ('Starter'," + P.id + ", 2, 25)");
+                WSt.executeUpdate("INSERT INTO weapon (name, player_id, damage, wear) VALUES ('Starter'," + P.id + ", 15, 25)");
+                WSt.executeUpdate("INSERT INTO armor (name, player_id, defence, wear) VALUES ('Starter'," + P.id + ", 2, 25)");
 
-                ResultSet Weapon = WSt.executeQuery("SELECT id FROM weapon where PlayerID = " + P.id);
+                ResultSet Weapon = WSt.executeQuery("SELECT id FROM weapon where player_id = " + P.id);
                 while(Weapon.next()){
                     int weaponID = Weapon.getInt("ID");
                     createUserSt.executeUpdate("UPDATE players SET weapon = " + weaponID + " WHERE id = " + P.id);
@@ -131,7 +131,7 @@ public class Model {
         try {
             Connection conn = DriverManager.getConnection(DEFAULT_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD);
             Statement st = conn.createStatement();
-            st.executeUpdate("UPDATE stats SET rounds = " + s.rounds + ", kills = " + s.kills + ", deaths = " + s.deaths + ", level = " + s.level + ", maxRoom = " + s.maxRoom + ", foundSwords = " + s.foundSwords + ", foundArmors = " + s.foundArmors + ", foundPotions = " + s.foundPotions + ", destroyedItems = " + s.destroyedItems + " WHERE PlayerID = " + s.PlayerID);
+            st.executeUpdate("UPDATE stats SET rounds = " + s.rounds + ", kills = " + s.kills + ", deaths = " + s.deaths + ", level = " + s.level + ", maxRoom = " + s.maxRoom + ", foundSwords = " + s.foundSwords + ", foundArmors = " + s.foundArmors + ", foundPotions = " + s.foundPotions + ", destroyedItems = " + s.destroyedItems + " WHERE player_id = " + s.player_id);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -163,31 +163,32 @@ public class Model {
         try {
             Connection conn = DriverManager.getConnection(DEFAULT_URL, DEFAULT_USERNAME, DEFAULT_PASSWORD);
             Statement st = conn.createStatement();
-            ResultSet w = st.executeQuery("SELECT * FROM weapon WHERE PlayerID = " +  P.id);
+            ResultSet w = st.executeQuery("SELECT * FROM weapon WHERE player_id = " +  P.id);
             while(w.next()){
                 String wName = w.getString("name");
                 int damage = w.getInt("damage");
                 int wear = w.getInt("wear");
                 W = new Weapon(P.id, wName, damage, wear);
             }
-            ResultSet a = st.executeQuery("SELECT * from armor WHERE PlayerID = " + P.id);
+            ResultSet a = st.executeQuery("SELECT * from armor WHERE player_id = " + P.id);
             while (a.next()){
                 String aName = a.getString("name");
                 int defence = a.getInt("defence");
                 int wear = a.getInt("wear");
                 A = new Armor(P.id, aName, defence, wear);
             }
-            ResultSet p = st.executeQuery("SELECT * from potion WHERE PlayerID = " + P.id);
+            ResultSet p = st.executeQuery("SELECT * from potion WHERE player_id = " + P.id);
             while(p.next()){
                 String pName = p.getString("name");
                 int healing = p.getInt("healing");
                 PO = new Potion(P.id, pName, healing);
             }
-            ResultSet s = st.executeQuery("SELECT * FROM stats WHERE PlayerID = " + P.id);
+            ResultSet s = st.executeQuery("SELECT * FROM stats WHERE player_id = " + P.id);
 
             Stats stats = null;
             while(s.next()){
-                int PlayerID = s.getInt("PlayerID");
+                int player_id = s.getInt("player_id");
+                String name = s.getString("name");
                 int rounds = s.getInt("rounds");
                 int kills = s.getInt("kills");
                 int deaths = s.getInt("deaths");
@@ -198,7 +199,7 @@ public class Model {
                 int foundPotions = s.getInt("foundPotions");
                 int destroyedItems = s.getInt("destroyedItems");
 
-                stats = new Stats(PlayerID, rounds, kills, deaths, level, maxRoom, foundSwords, foundArmors, foundPotions, destroyedItems);
+                stats = new Stats(player_id, name, rounds, kills, deaths, level, maxRoom, foundSwords, foundArmors, foundPotions, destroyedItems);
 
             }
             while (true){
@@ -244,9 +245,9 @@ public class Model {
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
-                                        updatePlayer("DELETE FROM weapon WHERE PlayerID = " + P.id);
-                                        updatePlayer("INSERT INTO weapon (name, PlayerID, damage, wear) VALUES ('" + newW.name + "'," + P.id + ", " + newW.damage + ", " + newW.wear + ")");
-                                        ResultSet gw = st.executeQuery("SELECT * FROM weapon WHERE PlayerID = " +  P.id);
+                                        updatePlayer("DELETE FROM weapon WHERE player_id = " + P.id);
+                                        updatePlayer("INSERT INTO weapon (name, player_id, damage, wear) VALUES ('" + newW.name + "'," + P.id + ", " + newW.damage + ", " + newW.wear + ")");
+                                        ResultSet gw = st.executeQuery("SELECT * FROM weapon WHERE player_id = " +  P.id);
                                         while (gw.next()){
                                             tempID = gw.getInt("id");
                                             String wName = gw.getString("name");
@@ -272,10 +273,10 @@ public class Model {
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
-                                        updatePlayer("DELETE FROM armor WHERE PlayerID = " + P.id);
-                                        updatePlayer("INSERT INTO armor (name, PlayerID, defence, wear) VALUES ('" + newA.name + "'," + P.id + ", " + newA.defence + ", " + newA.wear + ")");
+                                        updatePlayer("DELETE FROM armor WHERE player_id = " + P.id);
+                                        updatePlayer("INSERT INTO armor (name, player_id, defence, wear) VALUES ('" + newA.name + "'," + P.id + ", " + newA.defence + ", " + newA.wear + ")");
 
-                                        ResultSet gw = st.executeQuery("SELECT * FROM armor WHERE PlayerID = " +  P.id);
+                                        ResultSet gw = st.executeQuery("SELECT * FROM armor WHERE player_id = " +  P.id);
                                         while (gw.next()){
                                             tempID = gw.getInt("id");
                                             String aName = gw.getString("name");
@@ -303,9 +304,9 @@ public class Model {
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
-                                        updatePlayer("DELETE FROM potion WHERE PlayerID = " + P.id);
-                                        updatePlayer("INSERT INTO potion (name, PlayerID, healing) VALUES ('" + newPO.name + "'," + P.id + ", " + newPO.healing + ")");
-                                        ResultSet gw = st.executeQuery("SELECT * FROM potion WHERE PlayerID = " +  P.id);
+                                        updatePlayer("DELETE FROM potion WHERE player_id = " + P.id);
+                                        updatePlayer("INSERT INTO potion (name, player_id, healing) VALUES ('" + newPO.name + "'," + P.id + ", " + newPO.healing + ")");
+                                        ResultSet gw = st.executeQuery("SELECT * FROM potion WHERE player_id = " +  P.id);
                                         while (gw.next()){
                                             tempID = gw.getInt("id");
                                             String pName = gw.getString("name");
@@ -359,12 +360,14 @@ public class Model {
                         System.exit(0);
                     }else if (nextLn.equalsIgnoreCase("Potion")){
                         if (P.potion != 0) {
-                            assert PO != null;
-                            P.HP += PO.healing;
-                            if (P.HP < 100){
+                            if (PO != null) {
+                                P.HP += PO.healing;
+                            }
+                            System.out.println("hej");
+                            if (P.HP > 100){
                                 P.HP = 100;
                             }
-                            updatePlayer("DELETE FROM potion WHERE PlayerID = " + P.id);
+                            updatePlayer("DELETE FROM potion WHERE player_id = " + P.id);
                             PO.healing = 0;
                         }
                     }

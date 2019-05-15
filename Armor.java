@@ -1,11 +1,11 @@
 public class Armor {
-    int PlayerID;
+    int playerid;
     String name;
     int defence;
     int wear;
 
-    public Armor(int PlayerID, String name, int defence, int wear){
-        this.PlayerID = PlayerID;
+    public Armor(int playerid, String name, int defence, int wear){
+        this.playerid = playerid;
         this.name = name;
         this.defence = defence;
         this.wear = wear;

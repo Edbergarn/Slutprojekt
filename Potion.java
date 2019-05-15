@@ -1,10 +1,10 @@
 public class Potion {
-    int PlayerID;
+    int player_id;
     String name;
     int healing;
 
-    public Potion(int PlayerID, String name, int healing){
-        this.PlayerID = PlayerID;
+    public Potion(int player_id, String name, int healing){
+        this.player_id = player_id;
         this.name = name;
         this.healing = healing;
     }
