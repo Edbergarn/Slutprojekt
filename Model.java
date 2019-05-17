@@ -4,7 +4,11 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class Model {
-
+    /**
+     * Fetching player-data if player already exists, otherwise it's creating a new player-instance
+     * Player inserts a username, if username exists, it's fetching the data. If username does'nt exist it asks if the user want's to create a new player, if answer is yes it ask for username and then if username is not used, it creates a new player-, weapon- and armor-instance in the database
+     * @return
+     */
     private Player getStartInfo() { // Get Player-information before game start
         String hostname = "10.80.44.40";
         String dbName = "eliren16";
@@ -26,12 +30,6 @@ public class Model {
             P = getPlayer(gS);
 
             assert P != null;
-            System.out.println(P.id);
-            System.out.println(P.HP);
-            System.out.println(P.weapon);
-            System.out.println(P.armor);
-            System.out.println(P.potion);
-            System.out.println(P.room);
 
             if (P.id == 0){ // ------------------------------------------------------------------------------------------------------If username not found, create a new player-instance------------------
                 String Username = View.getNewUsername(); // Player inserts the chosen Username
@@ -75,6 +73,12 @@ public class Model {
         }
         return P;
     }
+
+    /**
+     * Createing Player with from ResultSet
+     * @param a ResultSet with Player info
+     * @return
+     */
     private Player getPlayer(ResultSet a){
         int id = 0;
         String name = "";
@@ -103,7 +107,12 @@ public class Model {
             }
             return null;
     }
-    private void updatePlayer(String a){ // update a specific Player-instance in the database
+
+    /**
+     * Executes a update-statement with the SQL String a
+     * @param a SQL String
+     */
+    private void update(String a){ // update a specific Player-instance in the database
         String hostname = "10.80.44.40";
         String dbName = "eliren16";
         int port = 3306;
@@ -121,6 +130,11 @@ public class Model {
         }
 
     }
+
+    /**
+     * Updating stats-table in DB
+     * @param s The stats
+     */
     private void updateStats(Stats s){
         String hostname = "10.80.44.40";
         String dbName = "eliren16";
@@ -140,7 +154,7 @@ public class Model {
 
     /**
      *Where the game is played
-     * @param P
+     * @param P Player that plays the game
      */
     private void playGame(Player P){ // Start the game
         //DB
@@ -226,7 +240,7 @@ public class Model {
                         }
                         if (M.HP < 1){
                             currentRoom++;
-                            updatePlayer("UPDATE players SET room = " + currentRoom + " WHERE id = " + P.id);
+                            update("UPDATE players SET room = " + currentRoom + " WHERE id = " + P.id);
                             assert stats != null;
                             stats.kills++;
                             View.dialog(finishedRoom);
@@ -245,8 +259,8 @@ public class Model {
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
-                                        updatePlayer("DELETE FROM weapon WHERE player_id = " + P.id);
-                                        updatePlayer("INSERT INTO weapon (name, player_id, damage, wear) VALUES ('" + newW.name + "'," + P.id + ", " + newW.damage + ", " + newW.wear + ")");
+                                        update("DELETE FROM weapon WHERE player_id = " + P.id);
+                                        update("INSERT INTO weapon (name, player_id, damage, wear) VALUES ('" + newW.name + "'," + P.id + ", " + newW.damage + ", " + newW.wear + ")");
                                         ResultSet gw = st.executeQuery("SELECT * FROM weapon WHERE player_id = " +  P.id);
                                         while (gw.next()){
                                             tempID = gw.getInt("id");
@@ -258,7 +272,7 @@ public class Model {
 
                                         }
                                         System.out.println(tempID);
-                                        updatePlayer("UPDATE players SET weapon = " + tempID + " WHERE id = " + P.id);
+                                        update("UPDATE players SET weapon = " + tempID + " WHERE id = " + P.id);
 
                                     }
                                 }else if (nr <= 84){//-----------------------------------------------------------ARMOR---------------------------
@@ -273,8 +287,8 @@ public class Model {
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
-                                        updatePlayer("DELETE FROM armor WHERE player_id = " + P.id);
-                                        updatePlayer("INSERT INTO armor (name, player_id, defence, wear) VALUES ('" + newA.name + "'," + P.id + ", " + newA.defence + ", " + newA.wear + ")");
+                                        update("DELETE FROM armor WHERE player_id = " + P.id);
+                                        update("INSERT INTO armor (name, player_id, defence, wear) VALUES ('" + newA.name + "'," + P.id + ", " + newA.defence + ", " + newA.wear + ")");
 
                                         ResultSet gw = st.executeQuery("SELECT * FROM armor WHERE player_id = " +  P.id);
                                         while (gw.next()){
@@ -287,7 +301,7 @@ public class Model {
 
 
                                         }
-                                        updatePlayer("UPDATE players SET armor = " + tempID + " WHERE id = " + P.id);
+                                        update("UPDATE players SET armor = " + tempID + " WHERE id = " + P.id);
                                     }
                                 }else if (nr <= 100){//----------------------------------------------------------POTION--------------------------------------------------------
                                     stats.foundPotions++;
@@ -304,8 +318,8 @@ public class Model {
                                     View.dialog("Press \"Y\" to keep or \"T\" to throw");
 
                                     if (sc.nextLine().equalsIgnoreCase("Y")){
-                                        updatePlayer("DELETE FROM potion WHERE player_id = " + P.id);
-                                        updatePlayer("INSERT INTO potion (name, player_id, healing) VALUES ('" + newPO.name + "'," + P.id + ", " + newPO.healing + ")");
+                                        update("DELETE FROM potion WHERE player_id = " + P.id);
+                                        update("INSERT INTO potion (name, player_id, healing) VALUES ('" + newPO.name + "'," + P.id + ", " + newPO.healing + ")");
                                         ResultSet gw = st.executeQuery("SELECT * FROM potion WHERE player_id = " +  P.id);
                                         while (gw.next()){
                                             tempID = gw.getInt("id");
@@ -317,7 +331,7 @@ public class Model {
 
 
                                         }
-                                        updatePlayer("UPDATE players SET potion = " + tempID + " WHERE id = " + P.id);
+                                        update("UPDATE players SET potion = " + tempID + " WHERE id = " + P.id);
                                     }
                                 }
                             }
@@ -345,11 +359,11 @@ public class Model {
                                     stats.maxRoom = currentRoom;
                                 }
                                 View.dialog("You're dead, GG!");
-                                updatePlayer("UPDATE players SET HP = 100 WHERE id = " + P.id);
+                                update("UPDATE players SET HP = 100 WHERE id = " + P.id);
                                 updateStats(stats);
                                 System.exit(0);
                             }
-                            updatePlayer("UPDATE players SET HP = " + P.HP + " WHERE id = " + P.id);
+                            update("UPDATE players SET HP = " + P.HP + " WHERE id = " + P.id);
                         }
 
                     }else if (nextLn.equalsIgnoreCase("reset")){
@@ -363,11 +377,10 @@ public class Model {
                             if (PO != null) {
                                 P.HP += PO.healing;
                             }
-                            System.out.println("hej");
                             if (P.HP > 100){
                                 P.HP = 100;
                             }
-                            updatePlayer("DELETE FROM potion WHERE player_id = " + P.id);
+                            update("DELETE FROM potion WHERE player_id = " + P.id);
                             PO.healing = 0;
                         }
                     }
@@ -382,6 +395,13 @@ public class Model {
         }
 
     }
+
+    /**
+     * Method that decides what weapon you get.
+     * @param nr Generated number that decides which weapon you get.
+     * @param id Playerid
+     * @return
+     */
     private Weapon getWeapon(int nr, int id){
         if (55 <= nr && nr <= 59){
             return new Weapon(id,"Sword", 18, 30);
@@ -397,6 +417,13 @@ public class Model {
             return null;
         }
     }
+
+    /**
+     * Method that decides what armor you get.
+     * @param nr Generated number that decides which armor you get.
+     * @param id Playerid
+     * @return
+     */
     private Armor getArmor(int nr, int id){
         if (70 <= nr && nr <= 74){//Armor
             return new Armor(id, "Armor", 4, 20);
@@ -413,6 +440,12 @@ public class Model {
         }
     }
 
+    /**
+     * Method that decides what potion you get.
+     * @param nr Generated number that decides which potion you get.
+     * @param id Playerid
+     * @return
+     */
     private Potion getPotion(int nr, int id){
         if (85 <= nr && nr <= 89){//Potions
             return new Potion(id, "Potion", 20);
